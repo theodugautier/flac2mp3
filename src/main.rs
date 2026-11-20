@@ -2,6 +2,7 @@ mod encoder;
 
 use encoder::encode_pcm_to_mp3;
 use rayon::prelude::*;
+use rayon::prelude::*;
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -19,13 +20,13 @@ fn main() {
         panic!("file path not provided");
     }
 
-    for path in args {
+    args.par_iter().for_each(|path| {
         let (pcm_left, pcm_right, sample_rate) = decode_flac_to_pcm(&path);
 
         println!("Encoding PCM to MP3...");
         let mp3_data = encode_pcm_to_mp3(&pcm_left, &pcm_right, sample_rate, 2);
 
-        let output_path = change_extension(&path, "mp3");
+        let output_path = change_extension(path, "mp3");
 
         println!("Writing MP3 data to file...");
         let mut output_file = File::create(&output_path).expect("Failed to create output file");
@@ -34,7 +35,7 @@ fn main() {
             .expect("Failed to write MP3 data to file");
 
         println!("MP3 file created: {}", output_path);
-    }
+    });
 }
 
 fn change_extension(path: &str, new_extension: &str) -> String {
